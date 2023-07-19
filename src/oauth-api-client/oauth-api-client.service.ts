@@ -87,7 +87,10 @@ export class OAuthAPIClient {
         if (isTokenValid) {
             return { access_token: credentials.accessToken };
         } else {
-            if (grantType === 'authorization_code' && !credentials.code) {
+            if (
+                grantType === GRANT_TYPE.authorizationCode &&
+                !credentials.code
+            ) {
                 return this.requestAccessToken(
                     credentials,
                     GRANT_TYPE.refreshToken,
