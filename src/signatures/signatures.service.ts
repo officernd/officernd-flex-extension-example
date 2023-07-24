@@ -71,7 +71,6 @@ export class SignaturesService {
         if (!payload.memberId) {
             delete payload.memberId;
         }
-        // delete payload.locations;
 
         const payloadToSign = `${JSON.stringify(payload)}.${timestamp}`;
 

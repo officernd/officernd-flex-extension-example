@@ -16,15 +16,20 @@ export interface IntegrationSettings {
 
 interface RequestOptions {
     authToken?: string;
+    body?: any;
 }
 
 @Injectable()
 export class AppService {
+    private readonly cache;
     constructor(
         private readonly configService: ConfigService,
         private readonly oauthAPIClient: OAuthAPIClient,
         private readonly httpService: HttpService,
-    ) {}
+    ) {
+        // NB: Local cache is used just for demonstration because this example does not use a database. Real projects should not use it.
+        this.cache = {};
+    }
 
     private async callApi(
         url: string,
@@ -41,6 +46,7 @@ export class AppService {
         const rawResponse = await this.httpService.axiosRef.request({
             url: `${url}${queryString}`,
             method: verb,
+            data: options.body,
             headers,
         });
 
@@ -51,7 +57,11 @@ export class AppService {
         orgSlug: string,
         accessToken: string,
         baseUrl: string,
-    ): Promise<{ name: string; regionInfo: { regionUrl: string } }> {
+    ): Promise<{
+        _id: string;
+        name: string;
+        regionInfo: { regionUrl: string };
+    }> {
         const org = await this.callApi(
             `${baseUrl}/api/v1/organizations/${orgSlug}`,
             'GET',
@@ -82,6 +92,35 @@ export class AppService {
         return integration;
     }
 
+    async configureRemovalWebhook(
+        org: { orgSlug: string; orgId: string },
+        access_token: string,
+        baseUrl: string,
+    ) {
+        const { orgSlug, orgId } = org;
+        const webhookData = {
+            eventTypes: ['integration.removed'],
+            enabled: true,
+            description:
+                'A webhook which will be called in case the integration in OfficeRnD is removed',
+            url: `${this.configService.currentEnvUrl}/integration/remove/${orgId}`,
+        };
+
+        const [webhook] = await this.callApi(
+            `${baseUrl}/api/v1/organizations/${orgSlug}/webhooks`,
+            'POST',
+            '',
+            {
+                authToken: access_token,
+                body: webhookData,
+            },
+        );
+
+        this.cache[orgId] = {
+            webhookSecret: webhook.secret,
+        };
+    }
+
     async connectToOfficerndFlex(
         orgSlug: string,
         integrationId: string,
@@ -104,6 +143,7 @@ export class AppService {
             access_token,
             flexRegionUrl,
         );
+
         flexRegionUrl = org.regionInfo.regionUrl;
 
         // Get the integration secret and save it for later, so we can validate follow up requests
@@ -116,6 +156,12 @@ export class AppService {
 
         // TODO: Configure disconnect webhook, so we clean up the integration if disconnected.
 
+        await this.configureRemovalWebhook(
+            { orgSlug, orgId: org._id },
+            access_token,
+            flexRegionUrl,
+        );
+
         return {
             baseUrl: flexRegionUrl,
             integrationSecret: integration.settings.secret,
@@ -123,5 +169,9 @@ export class AppService {
             refreshToken: refresh_token,
             expiresIn: expires_in,
         };
+    }
+
+    async getFlexWebhookSecret(orgId: string) {
+        return this.cache[orgId]?.webhookSecret;
     }
 }

@@ -1,12 +1,16 @@
 import {
+    Body,
     Controller,
     Get,
     HttpException,
     HttpStatus,
     Logger,
+    Param,
+    Post,
     Query,
     Redirect,
     Res,
+    Headers,
 } from '@nestjs/common';
 import { AppService, IntegrationSettings } from './app.service';
 import { ConfigService } from './config/config.service';
@@ -90,6 +94,32 @@ export class AppController {
         );
         return res.send(
             `Configure page UI for configuring integration for ${org.name} goes here!`,
+        );
+    }
+
+    @Post('/remove/:orgId')
+    async remove(
+        @Param('orgId') orgId: string,
+        @Headers() headers: any,
+        @Body() body: any,
+    ) {
+        const payload = body;
+        const signature = headers['officernd-signature'];
+
+        await this.verifyIncomingWebhook(orgId, signature, payload);
+    }
+
+    private async verifyIncomingWebhook(
+        orgId: string,
+        signatureString: string,
+        payload: any,
+    ) {
+        const secret = await this.appService.getFlexWebhookSecret(orgId);
+
+        this.signaturesService.verifySignedData(
+            signatureString,
+            payload,
+            secret,
         );
     }
 
