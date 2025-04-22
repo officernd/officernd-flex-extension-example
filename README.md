@@ -6,7 +6,7 @@ Go to `config.service.ts`, then
 
 -   Change `https://app.officernd.com` to `http://localhost:3030`
 -   Change `https://identity.officernd.com` to `https://identity-staging.officernd.com`
--   Chage `clientId` and `clientSecret` to thir respective values you can find in Data & Extensibility > Developer Tools > The application you've added > View in the cogwheel options
+-   Chage `clientId` and `clientSecret` to their respective values you can find in Data & Extensibility > Developer Tools > The application you've added > 'View' option in the cogwheel select
 -   Change `https://ec3a-78-130-149-149.ngrok-free.app` to your ngrok url
 
 ## Description
