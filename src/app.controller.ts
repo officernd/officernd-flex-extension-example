@@ -16,6 +16,7 @@ import { AppService, IntegrationSettings } from './app.service';
 import { ConfigService } from './config/config.service';
 import { SignaturesService } from './signatures/signatures.service';
 import { Response } from 'express';
+import { configureDialogTemplate } from './templates/configure-dialog.template';
 
 interface FlexIntegrationPageQuery {
     slug: string;
@@ -26,6 +27,7 @@ interface FlexIntegrationPageQuery {
 }
 
 // NOTE: Use this as a temporary storage for the integration settings. Replace with database storage.
+
 let integrationSettings: IntegrationSettings = null;
 
 @Controller('/integration')
@@ -86,48 +88,18 @@ export class AppController {
     ) {
         await this.verifyPageSignature(query);
 
-        // this.getOfficerndFlexOrganization(
         const org = await this.appService.getOfficerndFlexOrganization(
             query.slug,
             integrationSettings.accessToken,
             integrationSettings.baseUrl,
         );
-        return res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Configure Integration</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        padding: 40px;
-                        max-width: 800px;
-                        margin: 0 auto;
-                    }
-                    h1 {
-                        color: #333;
-                    }
-                    .button {
-                        display: inline-block;
-                        padding: 12px 24px;
-                        background-color: #007bff;
-                        color: white;
-                        text-decoration: none;
-                        border-radius: 4px;
-                        margin-top: 20px;
-                        cursor: pointer;
-                    }
-                    .button:hover {
-                        background-color: #0056b3;
-                    }
-                </style>
-            </head>
-            <body>
-                <h1>Configure page UI for configuring integration for ${org.name} goes here!</h1>
-                <a href="http://localhost:3000/connect/external-integration/return" class="button">Continue</a>
-            </body>
-            </html>
-        `);
+
+        return res.send(
+            configureDialogTemplate(
+                this.configService.officerndFlexUrl,
+                org.name,
+            ),
+        );
     }
 
     @Post('/remove/:orgId')
