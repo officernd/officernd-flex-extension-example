@@ -16,6 +16,7 @@ import { AppService, IntegrationSettings } from './app.service';
 import { ConfigService } from './config/config.service';
 import { SignaturesService } from './signatures/signatures.service';
 import { Response } from 'express';
+import { configureDialogTemplate } from './templates/configure-dialog.template';
 
 interface FlexIntegrationPageQuery {
     slug: string;
@@ -26,6 +27,7 @@ interface FlexIntegrationPageQuery {
 }
 
 // NOTE: Use this as a temporary storage for the integration settings. Replace with database storage.
+
 let integrationSettings: IntegrationSettings = null;
 
 @Controller('/integration')
@@ -86,14 +88,17 @@ export class AppController {
     ) {
         await this.verifyPageSignature(query);
 
-        // this.getOfficerndFlexOrganization(
         const org = await this.appService.getOfficerndFlexOrganization(
             query.slug,
             integrationSettings.accessToken,
             integrationSettings.baseUrl,
         );
+
         return res.send(
-            `Configure page UI for configuring integration for ${org.name} goes here!`,
+            configureDialogTemplate(
+                this.configService.officerndFlexUrl,
+                org.name,
+            ),
         );
     }
 
