@@ -5,6 +5,7 @@ import {
     GRANT_TYPE,
     OAuthAPIClient,
 } from './oauth-api-client/oauth-api-client.service';
+import { RegionService } from './region/region.service';
 
 export interface IntegrationSettings {
     baseUrl: string;
@@ -26,6 +27,7 @@ export class AppService {
         private readonly configService: ConfigService,
         private readonly oauthAPIClient: OAuthAPIClient,
         private readonly httpService: HttpService,
+        private readonly regionService: RegionService,
     ) {
         // NB: Local cache is used just for demonstration because this example does not use a database. Real projects should not use it.
         this.cache = {};
@@ -60,10 +62,11 @@ export class AppService {
     ): Promise<{
         _id: string;
         name: string;
-        regionInfo: { regionUrl: string };
+        slug: string;
+        region: string;
     }> {
         const org = await this.callApi(
-            `${baseUrl}/api/v1/organizations/${orgSlug}`,
+            `${baseUrl}/api/v2/organizations/${orgSlug}`,
             'GET',
             '',
             {
@@ -81,9 +84,9 @@ export class AppService {
         integrationId: string,
     ) {
         const integration = await this.callApi(
-            `${baseUrl}/api/v1/organizations/${orgSlug}/integrations/${integrationId}`,
+            `${baseUrl}/api/v2/organizations/${orgSlug}/integrations/${integrationId}`,
             'GET',
-            `?appClientId=${this.configService.officerndFlexOAuthConfig.clientId}`,
+            '',
             {
                 authToken: access_token,
             },
@@ -100,14 +103,14 @@ export class AppService {
         const { orgSlug, orgId } = org;
         const webhookData = {
             eventTypes: ['integration.removed'],
-            enabled: true,
+            isEnabled: true,
             description:
                 'A webhook which will be called in case the integration in OfficeRnD is removed',
             url: `${this.configService.currentEnvUrl}/integration/remove/${orgId}`,
         };
 
-        const [webhook] = await this.callApi(
-            `${baseUrl}/api/v1/organizations/${orgSlug}/webhooks`,
+        const webhook = await this.callApi(
+            `${baseUrl}/api/v2/organizations/${orgSlug}/webhooks`,
             'POST',
             '',
             {
@@ -137,14 +140,14 @@ export class AppService {
                 GRANT_TYPE.authorizationCode,
             );
 
-        // Get the actual organization API endpoint, depending on the region, so we call the right region
+        // Get the organization's region, so we call the right regional API host from now on
         const org = await this.getOfficerndFlexOrganization(
             orgSlug,
             access_token,
             flexRegionUrl,
         );
 
-        flexRegionUrl = org.regionInfo.regionUrl;
+        flexRegionUrl = this.regionService.getRegionUrl(org.region);
 
         // Get the integration secret and save it for later, so we can validate follow up requests
         const integration = await this.getOfficerndFlexIntegration(
