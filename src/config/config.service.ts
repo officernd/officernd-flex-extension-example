@@ -6,6 +6,15 @@ export class ConfigService {
         return 'https://app.officernd.com';
     }
 
+    // API host per organization region. Ireland uses the default host
+    get officerndFlexRegionUrls(): Record<string, string> {
+        return {
+            Ireland: this.officerndFlexUrl,
+            Sydney: 'https://app-au.officernd.com',
+            Singapore: 'https://app-ap.officernd.com',
+        };
+    }
+
     get officerndFlexOAuthConfig() {
         return {
             oauthUrl: 'https://identity.officernd.com',

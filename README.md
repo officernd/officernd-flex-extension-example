@@ -8,6 +8,7 @@ Go to `config.service.ts`, then
 -   Change `https://identity.officernd.com` to `https://identity-staging.officernd.com`
 -   Chage `clientId` and `clientSecret` to their respective values you can find in Data & Extensibility > Developer Tools > The application you've added > 'View' option in the cogwheel select
 -   Change `https://ec3a-78-130-149-149.ngrok-free.app` to your ngrok url
+-   Make sure your application has the API v2 scopes `flex.settings.organization.read`, `flex.settings.integrations.read` and `flex.settings.webhooks.create`
 
 ## Description
 

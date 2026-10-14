@@ -5,6 +5,7 @@ import { ConfigService } from './config/config.service';
 import { OAuthAPIClient } from './oauth-api-client/oauth-api-client.service';
 import { HttpModule } from '@nestjs/axios';
 import { SignaturesService } from './signatures/signatures.service';
+import { RegionService } from './region/region.service';
 
 @Module({
     imports: [
@@ -14,6 +15,12 @@ import { SignaturesService } from './signatures/signatures.service';
         }),
     ],
     controllers: [AppController],
-    providers: [AppService, ConfigService, ConfigService, OAuthAPIClient, SignaturesService],
+    providers: [
+        AppService,
+        ConfigService,
+        OAuthAPIClient,
+        SignaturesService,
+        RegionService,
+    ],
 })
 export class AppModule {}

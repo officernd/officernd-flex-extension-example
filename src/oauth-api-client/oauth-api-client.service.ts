@@ -47,7 +47,11 @@ export class OAuthAPIClient {
             client_id: clientId,
             client_secret: clientSecret,
             grant_type: grantType,
-            scope: 'officernd.api.read officernd.api.write',
+            scope: [
+                'flex.settings.organization.read',
+                'flex.settings.integrations.read',
+                'flex.settings.webhooks.create',
+            ].join(' '),
         };
 
         if (credentials.code) {
